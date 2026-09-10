@@ -1,56 +1,36 @@
-"""
-The whole app, end to end, exposed as a tiny API — no framework magic,
-just three plain functions wired together.
+import sys
+from app.pipeline import run_rag_pipeline
 
-Run it:
-    poetry run uvicorn app.main:app --reload
+def run_cli():
+    print("==================================================")
+    print(" Welcome to the Modular RAG CLI Application!")
+    print(" Type 'exit' or 'quit' to end the session.")
+    print("==================================================\n")
+    
+    while True:
+        try:
+            user_query = input("\nEnter your question: ").strip()
+            if not user_query:
+                continue
+            if user_query.lower() in ["exit", "quit"]:
+                print("Exiting RAG system. Goodbye!")
+                break
+            
+            print("\nProcessing question through RAG pipeline...")
+            answer, sources, chunks = run_rag_pipeline(user_query)
+            
+            print(f"Retrieved {len(chunks)} chunks from: {', '.join(sources)}")
+            print("\n" + "="*50)
+            print("ANSWER:")
+            print("="*50)
+            print(answer)
+            print("="*50)
+            
+        except KeyboardInterrupt:
+            print("\nExiting...")
+            sys.exit(0)
+        except Exception as e:
+            print(f"An error occurred: {e}")
 
-Then test it with curl (see README.md for full examples):
-    curl -X POST http://127.0.0.1:8000/ingest
-    curl -X POST http://127.0.0.1:8000/chat -H "Content-Type: application/json" \
-         -d '{"question": "What is the vacation policy?"}'
-"""
-import logging
-
-logging.getLogger("chromadb.telemetry.product.posthog").setLevel(logging.CRITICAL)
-
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-
-from app.generate import generate_answer
-from app.ingest import build_index
-from app.retrieval import retrieve
-
-app = FastAPI(title="Baseline Chat-with-Documents API")
-
-
-class ChatRequest(BaseModel):
-    question: str
-    top_k: int | None = None
-
-
-class ChatResponse(BaseModel):
-    answer: str
-    sources: list[str]
-
-
-@app.post("/ingest")
-def ingest():
-    """(Re)build the vector index from everything in data/."""
-    try:
-        count = build_index()
-    except FileNotFoundError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    return {"chunks_indexed": count}
-
-
-@app.post("/chat", response_model=ChatResponse)
-def chat(req: ChatRequest):
-    """The full retrieve -> augment -> generate loop for one question."""
-    if not req.question.strip():
-        raise HTTPException(status_code=400, detail="question must not be empty")
-
-    chunks = retrieve(req.question, top_k=req.top_k) if req.top_k else retrieve(req.question)
-    answer = generate_answer(req.question, chunks)
-    sources = sorted({c["source"] for c in chunks})
-    return ChatResponse(answer=answer, sources=sources)
+if __name__ == "__main__":
+    run_cli()

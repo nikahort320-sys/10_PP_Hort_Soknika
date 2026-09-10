@@ -1,0 +1,12 @@
+# Python & Poetry
+__pycache__/
+*.py[cod]
+.venv/
+
+# Vector Database storage (don't push binary database files)
+chroma_db/
+
+# Environment / System files
+.env
+.DS_Store
+.vscode/

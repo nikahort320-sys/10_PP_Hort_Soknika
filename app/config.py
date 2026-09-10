@@ -1,28 +1,13 @@
-"""
-All the knobs students can turn are collected here, in one place.
-Change a value here and the whole app picks it up — no hunting through files.
-"""
+import os
 
-# --- Models (must already be pulled in Ollama: `ollama pull <name>`) ---
-EMBED_MODEL = "nomic-embed-text"
-GEN_MODEL = "llama3:8b "
+os.environ["ANONYMIZED_TELEMETRY"] = "False"
 
-# --- Storage ---
-DATA_DIR = "data"                  # where source documents live
-CHROMA_DB_DIR = "chroma_db"        # where the vector index is persisted
-COLLECTION_NAME = "documents"
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_DIR = os.path.join(BASE_DIR, "data")
+CHROMA_DIR = os.path.join(BASE_DIR, "chroma_db")
 
-# --- Chunking ---
-CHUNK_SIZE = 800     # characters per chunk (not tokens — good enough for a baseline)
-CHUNK_OVERLAP = 120  # characters shared between consecutive chunks
+LLM_MODEL = "llama3.2"
+EMBEDDING_MODEL = "nomic-embed-text"
 
-# --- Retrieval ---
-TOP_K = 4            # how many chunks to pull back per question
-
-# --- Generation ---
-SYSTEM_PROMPT = (
-    "You are a helpful assistant that answers questions using ONLY the "
-    "context provided below. If the answer is not contained in the context, "
-    "say \"I don't have enough information in the documents to answer that.\" "
-    "Do not use outside knowledge. Cite the source file name(s) you used."
-)
+CHUNK_SIZE = 500
+CHUNK_OVERLAP = 100
