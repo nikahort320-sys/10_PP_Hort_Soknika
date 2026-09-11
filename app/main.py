@@ -1,3 +1,6 @@
+import utils.http_session
+import utils.transport
+import utils.session
 import sys
 from app.pipeline import run_rag_pipeline
 
